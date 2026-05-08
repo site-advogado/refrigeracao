@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PMOCsys — Recuperar Senha</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+*,*::before,*::after{-webkit-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+
+:root{
+  --primary:#1e40af;
+  --accent:#27a9e3;
+  --slate:#0f172a;
+  --muted:#64748b;
+  --bg:#f0f4fb;
+  --success:#10b981;
+  --error:#ff4b4b;
+}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100dvh;
+  overflow-x:hidden;overflow-y:auto;position:relative;
+}
+
+/* Background Elements similar to index */
+.bg-scene{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 10%,rgba(30,64,175,.1) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 85%,rgba(39,169,227,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 40% at 60% 50%,rgba(255,255,255,.6) 0%,transparent 70%),
+    linear-gradient(160deg,#e8f0fd 0%,#f0f4fb 40%,#e4f3fb 100%);
+}
+.bg-dots{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(30,64,175,.12) 1px,transparent 1px);
+  background-size:28px 28px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%);
+}
+.bg-grain{
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.45;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Floating Tags */
+.float-tags{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.tag{
+  position:absolute;pointer-events:auto;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(14px) saturate(1.6);
+  -webkit-backdrop-filter:blur(14px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.95);border-radius:999px;
+  padding:7px 16px 7px 13px;
+  font-size:.74rem;color:#3b4a6a;font-weight:500;
+  white-space:nowrap;
+  box-shadow:0 2px 12px rgba(30,64,175,.07),inset 0 1px 0 rgba(255,255,255,.9);
+  display:flex;align-items:center;gap:7px;
+  cursor:grab;will-change:transform;touch-action:none;
+}
+.tag-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--accent))}
+.tag:hover{background:rgba(255,255,255,.95);border-color:rgba(30,64,175,.22);color:var(--primary);box-shadow:0 6px 24px rgba(30,64,175,.13);z-index:3}
+
+/* Card Styling */
+.card{
+  position:relative;z-index:10;
+  width:100%;max-width:432px;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(32px) saturate(2);
+  -webkit-backdrop-filter:blur(32px) saturate(2);
+  border:1px solid rgba(255,255,255,.95);border-radius:30px;
+  padding:50px 44px 40px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.9) inset,
+    0 24px 60px rgba(15,23,42,.18),
+    0 60px 120px rgba(30,64,175,.22);
+  animation:cardUp .65s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes cardUp{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+
+.card::before{
+  content:'';position:absolute;top:0;left:40px;right:40px;height:3px;
+  background:linear-gradient(90deg,var(--primary) 0%,var(--accent) 60%,#5dd4f8 100%);
+  border-radius:0 0 8px 8px;
+}
+
+/* Header & Logo */
+.card-head{text-align:center;margin-bottom:32px;animation:fadeUp .55s .1s cubic-bezier(.22,1,.36,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.logo-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:24px}
+.logo-mark{
+  width:44px;height:44px;
+  background:linear-gradient(145deg,var(--primary),var(--accent));
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(30,64,175,.38);
+}
+.logo-name{font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;color:var(--slate);letter-spacing:-.04em}
+.logo-name span{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:500;font-size:1.1rem}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.67rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--primary);opacity:.75;
+}
+
+.card-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--slate);letter-spacing:-.04em;margin-bottom:7px}
+.card-sub{font-size:.875rem;color:var(--muted);font-weight:300;line-height:1.6}
+
+/* Form Elements */
+.field{margin-bottom:14px; text-align: left;}
+.field-label{display:block;font-size:.7rem;font-weight:600;color:#475569;letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px}
+.field-wrap{position:relative}
+.field-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:#94a3b8;pointer-events:none;display:flex;align-items:center;transition:color .2s;
+}
+.field-input{
+  width:100%;padding:13px 14px 13px 44px;
+  border:1.5px solid #dde6f0;border-radius:13px;
+  font-family:'Inter',sans-serif;font-size:.88rem;color:var(--slate);
+  background:rgba(255,255,255,.85);outline:none;transition:all .2s;
+}
+.field-input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(30,64,175,.09)}
+
+.btn-submit{
+  width:100%;padding:15px;border-radius:13px;
+  background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);
+  color:#fff;font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:all .2s;box-shadow:0 4px 16px rgba(30,64,175,.32);margin-top:20px;
+}
+.btn-submit:hover{transform:translateY(-2px);filter:brightness(1.04);box-shadow:0 10px 28px rgba(30,64,175,.38)}
+
+.divider{display:flex;align-items:center;gap:12px;margin:24px 0 16px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(220,230,245,.9)}
+.divider-text{font-size:.68rem;color:#aab5c8;font-weight:500;text-transform:uppercase}
+
+.back-link{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;padding:12px;border:1.5px solid #dde6f0;border-radius:13px;
+  font-size:.85rem;color:#475569;text-decoration:none;transition:all .2s;
+}
+.back-link:hover{border-color:var(--primary);color:var(--primary);background:rgba(30,64,175,.04)}
+
+/* Alert */
+.alert{
+  display:none;align-items:center;gap:9px;padding:11px 14px;border-radius:11px;
+  font-size:.82rem;margin-bottom:14px;background:rgba(255,75,75,.07);
+  border:1px solid rgba(255,75,75,.2);color:var(--error);
+}
+.alert.show{display:flex;animation:alertIn .22s ease both}
+@keyframes alertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+.card-foot{
+  margin-top:24px;padding-top:18px;border-top:1px solid rgba(220,230,245,.7);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.foot-text{font-size:.7rem;color:#aab5c8}
+.foot-badge{display:flex;align-items:center;gap:6px;font-size:.7rem;color:#64748b;font-weight:500}
+.ssl-dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px rgba(16,185,129,.16);animation:pulseDot 2.5s infinite}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.16)}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05)}}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+
+@media(max-width:520px){
+  .card{width:calc(100vw - 32px);padding:32px 20px 24px;}
+  .tag[data-i="1"],.tag[data-i="3"],.tag[data-i="8"]{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+<div class="bg-dots"></div>
+<div class="bg-grain"></div>
+
+<div class="float-tags">
+  <span class="tag" data-i="0"><span class="tag-dot"></span>PMOC</span>
+  <span class="tag" data-i="1"><span class="tag-dot"></span>Laudo técnico</span>
+  <span class="tag" data-i="2"><span class="tag-dot"></span>Ar-condicionado</span>
+  <span class="tag" data-i="3"><span class="tag-dot"></span>Manutenção preventiva</span>
+  <span class="tag" data-i="5"><span class="tag-dot"></span>Lei 13.589/2018</span>
+  <span class="tag" data-i="7"><span class="tag-dot"></span>Climatização</span>
+  <span class="tag" data-i="9"><span class="tag-dot"></span>Conformidade</span>
+  <span class="tag" data-i="11"><span class="tag-dot"></span>Qualidade do ar</span>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <div class="logo-wrap">
+      <div class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="2" x2="12" y2="22"/><path d="M17 7l-5-5-5 5"/><path d="M17 17l-5 5-5-5"/>
+          <line x1="2" y1="12" x2="22" y2="12"/><path d="M7 7l-5 5 5 5"/><path d="M17 7l5 5-5 5"/>
+        </svg>
+      </div>
+      <div class="logo-name">PMOC<span>sys</span></div>
+      <div class="eyebrow">Recuperação de Acesso</div>
+    </div>
+    <div class="card-title">Esqueceu a senha?</div>
+    <div class="card-sub">Informe seu e-mail cadastrado e enviaremos um link de redefinição.</div>
+  </div>
+
+  <div id="form-area">
+    <div class="alert error" id="alert-err">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="alert-msg">Erro ao processar.</span>
+    </div>
+
+    <div class="field">
+      <label class="field-label">E-mail</label>
+      <div class="field-wrap">
+        <span class="field-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </span>
+        <input class="field-input" type="email" id="inp-email" placeholder="seu@email.com" />
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btn-submit" onclick="doRecover()">
+      <span id="btn-label">Enviar link de recuperação</span>
+      <span class="spinner" id="btn-spinner" style="display:none"></span>
+    </button>
+
+    <div class="divider"><span class="divider-text">ou</span></div>
+
+    <a href="/index" class="back-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Voltar ao login
+    </a>
+  </div>
+
+  <div class="card-foot">
+    <div class="foot-text">© 2025 PMOCsys</div>
+    <div class="foot-badge"><div class="ssl-dot"></div>Conexão segura</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/tags.js" defer></script>
+<script src="/tilt.js" defer></script>
+
+<script>
+const SUPABASE_URL = 'https://bbogahvnfjshibmwjdma.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Mantenha sua chave completa aqui
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function doRecover() {
+  const email = document.getElementById('inp-email').value.trim();
+  const alert = document.getElementById('alert-err');
+  
+  if (!email) { showErr('Informe seu e-mail.'); return; }
+
+  setLoading(true);
+  const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://refrigeracao-1e7.pages.dev/reset-senha.html'
+  });
+  setLoading(false);
+
+  if (error) {
+    showErr(error.status === 429 ? 'Muitas tentativas. Aguarde.' : 'Erro ao enviar e-mail.');
+  } else {
+    showSuccess(email);
+  }
+}
+
+function showErr(msg) {
+  document.getElementById('alert-msg').textContent = msg;
+  document.getElementById('alert-err').classList.add('show');
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = on;
+  document.getElementById('btn-label').style.display = on ? 'none' : 'block';
+  document.getElementById('btn-spinner').style.display = on ? 'block' : 'none';
+}
+
+function showSuccess(email) {
+  document.getElementById('form-area').innerHTML = `
+    <div style="text-align:center; padding: 20px 0;">
+      <div style="color:var(--success); font-family:'Syne',sans-serif; font-weight:800; margin-bottom:10px;">E-MAIL ENVIADO!</div>
+      <p style="font-size:0.875rem; color:var(--muted); line-height:1.6;">
+        Enviamos as instruções para <strong>${email}</strong>. Verifique sua caixa de entrada.
+      </p>
+      <a href="/index" class="back-link" style="margin-top:20px;">Ir para o Login</a>
+    </div>`;
+}
+</script>
+</body>
+</html>
