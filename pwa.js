@@ -6,7 +6,7 @@
  * - Captura o evento beforeinstallprompt (Chrome/Edge/Android)
  * - Detecta iOS Safari e mostra instrução personalizada
  * - Exibe botão discreto no canto superior esquerdo após 3s
- * - Salva estado de dispensa para não incomodar novamente tão cedo
+ * - Salva estado de dispensa para não incomodar novamente tão cedo 
  */
 
 (function () {
