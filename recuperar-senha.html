@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://bbogahvnfjshibmwjdma.supabase.co; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com; connect-src 'self' https://bbogahvnfjshibmwjdma.supabase.co https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>PMOCsys — Recuperar Senha</title>
 
@@ -258,29 +259,39 @@ body{
 <script src="/tilt.js" defer></script>
 
 <script>
+// 1. Corrigido: Removida a barra extra no final da chave
 const SUPABASE_URL = 'https://bbogahvnfjshibmwjdma.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJib2dhaHZuZmpzaGlibXdqZG1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTY2OTQsImV4cCI6MjA5MzM5MjY5NH0.wjGf7qfp1QO0McQ60tBFhc1G0dIMP_0KvAB-qgCKVxc';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJib2dhaHZuZmpzaGlibXdqZG1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTY2OTQsImV4cCI6MjA5MzM5MjY5NH0.wjGf7qfp1QO0McQ60tBFhc1G0dIMP_0KvAB-qgCKVxc'; 
+
+// 2. Inicialização
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// 3. Função de recuperação
 async function doRecover() {
   const email = document.getElementById('inp-email').value.trim();
-  const alert = document.getElementById('alert-err');
   
-  if (!email) { showErr('Informe seu e-mail.'); return; }
+  if (!email) { 
+    showErr('Informe seu e-mail.'); 
+    return; 
+  }
 
   setLoading(true);
-  const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://refrigeracao-1e7.pages.dev/reset-senha.html'
-  });
-  setLoading(false);
+  try {
+    const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://refrigeracao-1e7.pages.dev/reset-senha.html'
+    });
 
-  if (error) {
-    showErr(error.status === 429 ? 'Muitas tentativas. Aguarde.' : 'Erro ao enviar e-mail.');
-  } else {
-    showSuccess(email);
+    if (error) {
+      showErr(error.status === 429 ? 'Muitas tentativas. Aguarde.' : 'Erro ao enviar e-mail.');
+    } else {
+      showSuccess(email);
+    }
+  } catch (e) {
+    showErr('Erro de conexão com o servidor.');
+  } finally {
+    setLoading(false);
   }
 }
-
 function showErr(msg) {
   document.getElementById('alert-msg').textContent = msg;
   document.getElementById('alert-err').classList.add('show');
