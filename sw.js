@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pmocsys-v2';
+const CACHE_NAME = 'pmocsys-v3';
 const ASSETS = ['/', '/index.html', '/login.js', '/tags.js', '/tilt.js', '/pwa.js', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', event => {
