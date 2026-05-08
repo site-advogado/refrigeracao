@@ -278,7 +278,7 @@ async function doRecover() {
   setLoading(true);
   try {
     const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://refrigeracao-1e7.pages.dev/reset-senha.html'
+      redirectTo: 'https://pmoc.pages.dev/recuperar-senha'
     });
 
     if (error) {
