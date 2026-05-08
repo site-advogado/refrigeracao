@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PMOCsys — Entrar</title>
+
+<!-- Turnstile invisível: sem checkbox, sem iframe visível, sem conflito de CSP -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+*,*::before,*::after{-webkit-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+
+:root{
+  --primary:#1e40af;
+  --accent:#27a9e3;
+  --slate:#0f172a;
+  --muted:#64748b;
+  --bg:#f0f4fb;
+  --success:#10b981;
+  --error:#ff4b4b;
+}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100dvh;
+  overflow-x:hidden;overflow-y:auto;position:relative;
+}
+
+.bg-scene{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 10%,rgba(30,64,175,.1) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 85%,rgba(39,169,227,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 40% at 60% 50%,rgba(255,255,255,.6) 0%,transparent 70%),
+    linear-gradient(160deg,#e8f0fd 0%,#f0f4fb 40%,#e4f3fb 100%);
+}
+.bg-dots{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(30,64,175,.12) 1px,transparent 1px);
+  background-size:28px 28px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%);
+}
+.bg-grain{
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.45;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+.float-tags{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.tag{
+  position:absolute;pointer-events:auto;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(14px) saturate(1.6);
+  -webkit-backdrop-filter:blur(14px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.95);border-radius:999px;
+  padding:7px 16px 7px 13px;
+  font-size:.74rem;color:#3b4a6a;font-family:'Inter',sans-serif;font-weight:500;
+  white-space:nowrap;
+  box-shadow:0 2px 12px rgba(30,64,175,.07),inset 0 1px 0 rgba(255,255,255,.9);
+  display:flex;align-items:center;gap:7px;
+  cursor:grab;will-change:transform;touch-action:none;
+}
+.tag.dragging{cursor:grabbing}
+.tag-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--accent))}
+.tag:hover{background:rgba(255,255,255,.95);border-color:rgba(30,64,175,.22);color:var(--primary);box-shadow:0 6px 24px rgba(30,64,175,.13),inset 0 1px 0 rgba(255,255,255,1);z-index:3}
+
+.card{
+  position:relative;z-index:10;
+  width:100%;max-width:432px;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(32px) saturate(2);
+  -webkit-backdrop-filter:blur(32px) saturate(2);
+  border:1px solid rgba(255,255,255,.95);border-radius:30px;
+  padding:50px 44px 40px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.9) inset,
+    0 2px 4px rgba(15,23,42,.08),
+    0 8px 20px rgba(15,23,42,.12),
+    0 24px 60px rgba(15,23,42,.18),
+    0 60px 120px rgba(30,64,175,.22),
+    0 80px 160px rgba(15,23,42,.14);
+  animation:cardUp .65s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes cardUp{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+.card::before{
+  content:'';position:absolute;top:0;left:40px;right:40px;height:3px;
+  background:linear-gradient(90deg,var(--primary) 0%,var(--accent) 60%,#5dd4f8 100%);
+  border-radius:0 0 8px 8px;
+}
+
+.card-head{text-align:center;margin-bottom:36px;animation:fadeUp .55s .1s cubic-bezier(.22,1,.36,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.logo-wrap{display:inline-flex;align-items:center;gap:12px;margin-bottom:24px}
+.logo-mark{
+  width:44px;height:44px;
+  background:linear-gradient(145deg,var(--primary),var(--accent));
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(30,64,175,.38),0 2px 4px rgba(30,64,175,.2),inset 0 1px 0 rgba(255,255,255,.22);
+  position:relative;overflow:hidden;
+}
+.logo-mark::after{
+  content:'';position:absolute;top:-40%;left:-10%;width:60%;height:55%;
+  background:rgba(255,255,255,.18);border-radius:50%;transform:rotate(-25deg);
+}
+.logo-mark svg{position:relative;z-index:1}
+.logo-name{font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;color:var(--slate);letter-spacing:-.04em}
+.logo-name span{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:500;font-size:1.1rem}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.67rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--primary);opacity:.75;margin-bottom:9px;
+}
+.eyebrow::before,.eyebrow::after{content:'';display:inline-block;width:18px;height:1px;background:linear-gradient(90deg,transparent,var(--primary));opacity:.5}
+.eyebrow::after{transform:scaleX(-1)}
+.card-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--slate);letter-spacing:-.04em;margin-bottom:7px}
+.card-sub{font-size:.875rem;color:var(--muted);font-weight:300;line-height:1.6}
+
+.form-body{animation:fadeUp .55s .18s cubic-bezier(.22,1,.36,1) both}
+.field{margin-bottom:14px}
+.field-label{display:block;font-size:.7rem;font-weight:600;color:#475569;letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px}
+.field-wrap{position:relative}
+.field-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:#94a3b8;pointer-events:none;display:flex;align-items:center;transition:color .2s;
+}
+.field-wrap:focus-within .field-icon{color:var(--primary)}
+.field-input{
+  width:100%;padding:13px 14px 13px 44px;
+  border:1.5px solid #dde6f0;border-radius:13px;
+  font-family:'Inter',sans-serif;font-size:.88rem;color:var(--slate);
+  background:rgba(255,255,255,.85);outline:none;
+  transition:border-color .2s,box-shadow .2s,background .2s;-webkit-appearance:none;
+}
+.field-input::placeholder{color:#b8c4d4}
+.field-input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(30,64,175,.09)}
+.pw-toggle{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  cursor:pointer;color:#94a3b8;display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:8px;transition:color .15s,background .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.pw-toggle:hover{color:#475569;background:rgba(0,0,0,.05)}
+.field-row{display:flex;align-items:center;justify-content:space-between;margin:16px 0 22px}
+.checkbox-wrap{display:flex;align-items:center;gap:8px;cursor:pointer}
+.checkbox-wrap input[type="checkbox"]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer}
+.checkbox-label{font-size:.83rem;color:var(--muted);font-weight:400}
+.forgot-link{font-size:.83rem;color:var(--primary);font-weight:500;text-decoration:none;transition:opacity .15s;cursor:pointer}
+.forgot-link:hover{opacity:.65}
+
+.alert{
+  display:none;align-items:center;gap:9px;
+  padding:11px 14px;border-radius:11px;font-size:.82rem;margin-bottom:14px;
+  background:rgba(255,75,75,.07);border:1px solid rgba(255,75,75,.2);color:var(--error);
+}
+.alert.show{display:flex;animation:alertIn .22s ease both}
+@keyframes alertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+.btn-submit{
+  width:100%;padding:15px;border-radius:13px;
+  background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);
+  color:#fff;font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:transform .15s,box-shadow .2s,filter .2s;
+  box-shadow:0 4px 16px rgba(30,64,175,.32),0 2px 4px rgba(30,64,175,.2),inset 0 1px 0 rgba(255,255,255,.18);
+  position:relative;overflow:hidden;
+}
+.btn-submit::before{
+  content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+  transition:left .5s ease;
+}
+.btn-submit:hover::before{left:160%}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(30,64,175,.38),0 4px 8px rgba(39,169,227,.2);filter:brightness(1.04)}
+.btn-submit:active{transform:none}
+.btn-submit:disabled{opacity:.62;pointer-events:none}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+
+.card-foot{
+  margin-top:24px;padding-top:18px;border-top:1px solid rgba(220,230,245,.7);
+  display:flex;align-items:center;justify-content:space-between;
+  animation:fadeUp .55s .3s cubic-bezier(.22,1,.36,1) both;
+}
+.foot-text{font-size:.7rem;color:#aab5c8}
+.foot-badge{display:flex;align-items:center;gap:6px;font-size:.7rem;color:#64748b;font-weight:500}
+.ssl-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--success);
+  box-shadow:0 0 0 3px rgba(16,185,129,.16);
+  animation:pulseDot 2.5s ease-in-out infinite;
+}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.16)}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05)}}
+
+/* Turnstile invisível — sem espaço na tela */
+#ts-container{position:absolute;width:0;height:0;overflow:hidden;visibility:hidden}
+
+@media(max-width:520px){
+  html,body{height:100dvh;overflow:hidden}
+  body{padding:0}
+  .card{width:calc(100vw - 32px);max-width:400px;padding:32px 20px 24px;border-radius:22px;transform:none!important;position:static;margin:0}
+  .card::before{left:20px;right:20px}
+  .tag[data-i="1"],.tag[data-i="3"],.tag[data-i="4"],.tag[data-i="8"],.tag[data-i="10"],.tag[data-i="11"]{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+<div class="bg-dots"></div>
+<div class="bg-grain"></div>
+
+<div class="float-tags">
+  <span class="tag" data-i="0"><span class="tag-dot"></span>PMOC</span>
+  <span class="tag" data-i="1"><span class="tag-dot"></span>Laudo técnico</span>
+  <span class="tag" data-i="2"><span class="tag-dot"></span>Ar-condicionado</span>
+  <span class="tag" data-i="3"><span class="tag-dot"></span>Manutenção preventiva</span>
+  <span class="tag" data-i="4"><span class="tag-dot"></span>Ordem de serviço</span>
+  <span class="tag" data-i="5"><span class="tag-dot"></span>Lei 13.589/2018</span>
+  <span class="tag" data-i="6"><span class="tag-dot"></span>Filtros HEPA</span>
+  <span class="tag" data-i="7"><span class="tag-dot"></span>Climatização</span>
+  <span class="tag" data-i="8"><span class="tag-dot"></span>Relatório mensal</span>
+  <span class="tag" data-i="9"><span class="tag-dot"></span>Conformidade</span>
+  <span class="tag" data-i="10"><span class="tag-dot"></span>QR por equipamento</span>
+  <span class="tag" data-i="11"><span class="tag-dot"></span>Qualidade do ar</span>
+</div>
+
+<!-- Container invisível do Turnstile — renderizado via JS explícito -->
+<div id="ts-container"></div>
+
+<div class="card" id="login-card">
+  <div class="card-head">
+    <div class="logo-wrap">
+      <div class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="2" x2="12" y2="22"/>
+          <path d="M17 7l-5-5-5 5"/><path d="M17 17l-5 5-5-5"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M7 7l-5 5 5 5"/><path d="M17 7l5 5-5 5"/>
+        </svg>
+      </div>
+      <div class="logo-name">PMOC<span>sys</span></div>
+    </div>
+    <div class="eyebrow">Acesso seguro</div>
+    <div class="card-title">Bem-vindo de volta</div>
+    <div class="card-sub">Entre com suas credenciais para acessar o sistema de gestão.</div>
+  </div>
+
+  <div class="form-body">
+    <div class="alert" id="alert-err">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="alert-msg">Credenciais inválidas. Tente novamente.</span>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="inp-email">E-mail</label>
+      <div class="field-wrap">
+        <span class="field-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </span>
+        <input class="field-input" type="email" id="inp-email" placeholder="seu@email.com" autocomplete="username"/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="inp-senha">Senha</label>
+      <div class="field-wrap">
+        <span class="field-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </span>
+        <input class="field-input" type="password" id="inp-senha" placeholder="••••••••" autocomplete="current-password" style="padding-right:46px"/>
+        <span class="pw-toggle" onclick="togglePw()">
+          <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <label class="checkbox-wrap">
+        <input type="checkbox" id="remember" checked/>
+        <span class="checkbox-label">Manter conectado</span>
+      </label>
+      <a class="forgot-link" href="/recuperar-senha">Esqueci a senha</a>
+    </div>
+
+    <button class="btn-submit" id="btn-submit" onclick="doLogin()">
+      <span id="btn-label">Entrar</span>
+      <span id="btn-spinner" class="spinner" style="display:none"></span>
+      <svg id="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="card-foot">
+    <div class="foot-text">© 2025 PMOCsys · Lei 13.589/2018</div>
+    <div class="foot-badge"><div class="ssl-dot"></div>Conexão segura</div>
+  </div>
+</div>
+
+<script src="/login.js"></script>
+<script src="/tags.js" defer></script>
+<script src="/tilt.js" defer></script>
+</body>
+</html>
