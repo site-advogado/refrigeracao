@@ -155,7 +155,7 @@ export default {
       return new Response(null, {
         status: 302,
         headers: {
-          'Location': '/login',
+          'Location': '/',
           'Set-Cookie': `pmoc_sess=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`,
           'Cache-Control': 'no-store'
         }
@@ -170,7 +170,7 @@ export default {
     }
 
     // Login — redireciona se já autenticado
-    if (path === '/' || path === '/login') {
+    if (path === '/' || path === '/index.html') {
       const user = await validateSession(cook, env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
       if (user) return Response.redirect(`${url.origin}/dashboard`, 302);
     }

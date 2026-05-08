@@ -13,7 +13,7 @@ let tsWidget = null;
 // Inicializa o Turnstile no modo invisível após o script carregar
 window.onloadTurnstileCallback = function () {
   tsWidget = turnstile.render('#ts-container', {
-    sitekey:  '0x4AAAAAADImoRxJqwVPWd-4', // ← sua site key
+    sitekey:  '0x4AAAAAADLLISqReXosq1su', // ← sua site key
     size:     'invisible',
     callback: function (token) { tsToken = token; },
     'error-callback': function () {
