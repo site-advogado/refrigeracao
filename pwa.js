@@ -1,23 +1,21 @@
 /**
- * pwa.js — Gerenciador de instalação PWA do PMOCsys
+* pwa.js — Gerenciador de instalação PWA do PMOCsys
  *
  * - Registra o Service Worker
  * - Detecta se já está instalado (standalone) → não mostra nada
  * - Captura o evento beforeinstallprompt (Chrome/Edge/Android)
  * - Detecta iOS Safari e mostra instrução personalizada
- * - Exibe botão discreto no canto superior direito após 3s
+ * - Exibe botão discreto no canto superior esquerdo após 3s
  * - Salva estado de dispensa para não incomodar novamente tão cedo
  */
 
 (function () {
   'use strict';
 
-  // ── 1. Registro do Service Worker ──────────────────────────────
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
-  // ── 2. Detecta se já está rodando como app instalado ───────────
   const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true ||
@@ -25,12 +23,10 @@
 
   if (isStandalone) return;
 
-  // ── 3. Verifica se o usuário dispensou recentemente (7 dias) ───
   const DISMISS_KEY = 'pwa_dismissed_at';
   const dismissed   = localStorage.getItem(DISMISS_KEY);
   if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-  // ── 4. Detecta plataforma ──────────────────────────────────────
   const ua          = navigator.userAgent;
   const isIOS       = /iphone|ipad|ipod/i.test(ua) && !window.MSStream;
   const isSafari    = /^((?!chrome|android).)*safari/i.test(ua);
@@ -38,22 +34,18 @@
 
   let deferredPrompt = null;
 
-  // ── 5. Captura evento nativo (Chrome, Edge, Android) ───────────
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredPrompt = e;
     scheduleShow('native');
   });
 
-  // ── 6. iOS Safari: não tem beforeinstallprompt ─────────────────
   if (isIOSSafari) scheduleShow('ios');
 
-  // ── 7. Aguarda 3s e exibe o banner ─────────────────────────────
   function scheduleShow(type) {
     setTimeout(() => showBanner(type), 3000);
   }
 
-  // ── 8. Cria e exibe o banner ───────────────────────────────────
   function showBanner(type) {
     if (document.getElementById('pwa-banner')) return;
 
@@ -65,7 +57,7 @@
     banner.setAttribute('aria-label', 'Instalar PMOCsys');
 
     if (type === 'ios') {
-      banner.innerHTML = `
+      banner.innerHTML = \`
         <button class="pwa-pill" id="pwa-pill-btn" aria-expanded="false">
           <span class="pwa-pill-icon">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -86,9 +78,9 @@
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-      `;
+      \`;
     } else {
-      banner.innerHTML = `
+      banner.innerHTML = \`
         <button class="pwa-pill" id="pwa-install-btn" aria-label="Instalar PMOCsys">
           <span class="pwa-pill-icon">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -102,7 +94,7 @@
         <button class="pwa-dismiss" id="pwa-close-btn" aria-label="Fechar">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
-      `;
+      \`;
     }
 
     document.body.appendChild(banner);
@@ -150,16 +142,15 @@
     setTimeout(() => banner.remove(), 400);
   }
 
-  // ── 9. Estilos do banner ───────────────────────────────────────
   function injectStyles() {
     if (document.getElementById('pwa-styles')) return;
     const style = document.createElement('style');
     style.id = 'pwa-styles';
-    style.textContent = `
+    style.textContent = \`
       #pwa-banner {
         position: fixed;
         top: 16px;
-        right: 16px;
+        left: 16px;
         z-index: 9999;
         display: flex;
         align-items: center;
@@ -279,7 +270,7 @@
         display: none;
         position: absolute;
         top: calc(100% + 10px);
-        right: 0;
+        left: 0;
         background: rgba(255,255,255,0.96);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
@@ -297,7 +288,7 @@
         content: '';
         position: absolute;
         top: -5px;
-        right: 18px;
+        left: 18px;
         width: 10px;
         height: 10px;
         background: rgba(255,255,255,0.96);
@@ -346,13 +337,14 @@
       .pwa-tooltip-close:hover { color: #475569; }
 
       @media (max-width: 480px) {
-        #pwa-banner { top: 12px; right: 12px; }
+        #pwa-banner { top: 12px; left: 12px; }
         .pwa-pill { padding: 6px 11px 6px 8px; gap: 6px; }
         .pwa-pill-icon { width: 22px; height: 22px; border-radius: 6px; }
         .pwa-pill-label { font-size: .73rem; }
       }
-    `;
+    \`;
     document.head.appendChild(style);
   }
 
 })();
+`;
