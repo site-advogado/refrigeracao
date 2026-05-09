@@ -104,7 +104,7 @@ export default {
     const ip   = req.headers.get('CF-Connecting-IP') || '0.0.0.0';
     const cook = req.headers.get('Cookie') || '';
 
-    // POST /api/login
+    // ── POST /api/login ──────────────────────────────────────────────────────
     if (path === '/api/login' && req.method === 'POST') {
       let body;
       try { body = await req.json(); }
@@ -128,7 +128,6 @@ export default {
         return json(403, { ok: false, message: 'Verificação de segurança falhou.' });
       }
 
-      // CORREÇÃO CHAVE: usa ANON_KEY para autenticar usuários
       const auth = await supabaseLogin(email, password, env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
       if (auth.error) {
         writeLog(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY,
@@ -150,7 +149,106 @@ export default {
       });
     }
 
-    // GET /api/logout
+    // ── POST /api/recover ────────────────────────────────────────────────────
+    if (path === '/api/recover' && req.method === 'POST') {
+      let body;
+      try { body = await req.json(); }
+      catch { return json(400, { ok: false, message: 'Requisição inválida.' }); }
+
+      const { email } = body;
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return json(400, { ok: false, message: 'E-mail inválido.' });
+
+      if (checkRateLimit(ip))
+        return json(429, { ok: false, message: 'Muitas tentativas. Aguarde 1 minuto.' });
+
+      try {
+        const r = await fetch(`${env.SUPABASE_URL}/auth/v1/recover`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({
+            email,
+            // URL para onde o link do e-mail vai redirecionar após o clique.
+            // Deve estar cadastrada nas Redirect URLs do Supabase.
+            redirect_to: 'https://pmoc.pages.dev/reset-senha'
+          })
+        });
+
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          console.error('[PMOCsys] Supabase /auth/v1/recover error:', r.status, err);
+          return json(500, { ok: false, message: 'Erro ao processar. Tente novamente.' });
+        }
+
+        // O Supabase retorna 200 OK mesmo se o e-mail não existir (anti-enumeração)
+        return json(200, { ok: true });
+
+      } catch (e) {
+        console.error('[PMOCsys] /api/recover fetch error:', e);
+        return json(500, { ok: false, message: 'Erro de conexão com o servidor.' });
+      }
+    }
+
+    // ── POST /api/reset ──────────────────────────────────────────────────────
+    // Recebe { token, password } do reset-senha.html e atualiza a senha
+    // server-side via Supabase Auth, sem expor chaves no front-end.
+    if (path === '/api/reset' && req.method === 'POST') {
+      let body;
+      try { body = await req.json(); }
+      catch { return json(400, { ok: false, message: 'Requisição inválida.' }); }
+
+      const { token, password } = body;
+
+      // Validações básicas
+      if (!token || typeof token !== 'string' || token.trim() === '')
+        return json(400, { ok: false, message: 'Token ausente.' });
+
+      if (!password || typeof password !== 'string' || password.length < 8)
+        return json(400, { ok: false, message: 'A senha deve ter no mínimo 8 caracteres.' });
+
+      // Rate limiting — mesmo mecanismo do /api/login
+      if (checkRateLimit(ip))
+        return json(429, { ok: false, message: 'Muitas tentativas. Aguarde 1 minuto.' });
+
+      try {
+        // Atualiza a senha usando o access_token de recuperação como Bearer.
+        // Este token é emitido pelo Supabase quando o usuário clica no link
+        // do e-mail de recuperação — ele possui scope limitado (só reset).
+        const r = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${token.trim()}`
+          },
+          body: JSON.stringify({ password })
+        });
+
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          console.error('[PMOCsys] Supabase /auth/v1/user PUT error:', r.status, err);
+
+          // 401 = token inválido ou expirado
+          if (r.status === 401 || r.status === 403)
+            return json(401, { ok: false, message: 'Link expirado ou inválido. Solicite um novo.' });
+
+          return json(500, { ok: false, message: 'Erro ao redefinir senha. Tente novamente.' });
+        }
+
+        return json(200, { ok: true });
+
+      } catch (e) {
+        console.error('[PMOCsys] /api/reset fetch error:', e);
+        return json(500, { ok: false, message: 'Erro de conexão com o servidor.' });
+      }
+    }
+
+    // ── GET /api/logout ──────────────────────────────────────────────────────
     if (path === '/api/logout') {
       return new Response(null, {
         status: 302,
@@ -162,20 +260,20 @@ export default {
       });
     }
 
-    // Rotas protegidas
+    // ── Rotas protegidas ─────────────────────────────────────────────────────
     if (PROTECTED.some(p => path.startsWith(p))) {
       const user = await validateSession(cook, env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
       if (!user) return Response.redirect(`${url.origin}/login`, 302);
       return env.ASSETS.fetch(req);
     }
 
-    // Login — redireciona se já autenticado
+    // ── Login — redireciona se já autenticado ────────────────────────────────
     if (path === '/' || path === '/index.html') {
       const user = await validateSession(cook, env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
       if (user) return Response.redirect(`${url.origin}/dashboard`, 302);
     }
 
-    // Tudo mais — serve estático
+    // ── Tudo mais — serve estático ───────────────────────────────────────────
     return env.ASSETS.fetch(req);
   }
 };
